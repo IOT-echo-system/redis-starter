@@ -1,7 +1,6 @@
 package com.robotutor.iot.config
 
 import com.robotutor.iot.serializer.GsonRedisSerializer
-import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.cache.interceptor.KeyGenerator
 import org.springframework.context.annotation.Bean
@@ -17,7 +16,7 @@ import java.time.Duration
 @EnableCaching
 class RedisCacheConfig(private val factory: ReactiveRedisConnectionFactory) {
     @Bean
-    fun cacheManager(): CacheManager {
+    fun redisCacheManager(): RedisCacheManager {
         val redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(Duration.ofMinutes(10))
             .disableCachingNullValues()
