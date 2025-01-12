@@ -19,7 +19,7 @@ publishing {
             from(components["java"])
             groupId = "com.robotutor"
             artifactId = "redis-starter"
-            version = "1.0.17"
+            version = "1.0.18"
 
             pom {
                 name.set("Redis Starter")
