@@ -16,11 +16,11 @@ class GsonRedisSerializer<T>(private val clazz: Class<T>) : RedisSerializer<T> {
 
     override fun deserialize(bytes: ByteArray?): T? {
         return try {
+            println("-----------------------------------")
+            println(bytes?.toString())
+            println(clazz)
+            println("-----------------------------------")
             bytes?.let {
-                println("-----------------------------------")
-                println(String(it, StandardCharsets.UTF_8))
-                println(clazz)
-                println("-----------------------------------")
                 ObjectMapperCache.objectMapper.fromJson(String(it, StandardCharsets.UTF_8), clazz)
             }
         } catch (e: Exception) {
