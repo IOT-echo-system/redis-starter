@@ -4,5 +4,5 @@ fileignoreconfig:
 - filename: src/main/kotlin/com/robotutor/iot/config/RedisCacheConfig.kt
   checksum: 91c93832d35a34fb9946fc8e296b42a1b45f9e5b3fdc9b815bf640ade7d042a0
 - filename: src/main/kotlin/com/robotutor/iot/service/CacheService.kt
-  checksum: 0b8c0080f2af985e200c034201f838493369e9955c26bb0106b5bcaf4265da18
+  checksum: 700cb9aafa276a38e3d28eec2416abc849d84be10db89b203cb5419e02ef9dbb
 version: ""
