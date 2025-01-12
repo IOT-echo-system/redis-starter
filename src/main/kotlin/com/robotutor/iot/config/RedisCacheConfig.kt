@@ -19,6 +19,11 @@ class RedisCacheConfig(private val factory: RedisConnectionFactory) {
         val redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(Duration.ofMinutes(10))
             .disableCachingNullValues()
+            .serializeKeysWith(
+                RedisSerializationContext
+                    .SerializationPair
+                    .fromSerializer(GsonRedisSerializer(String::class.java))
+            )
             .serializeValuesWith(
                 RedisSerializationContext
                     .SerializationPair
