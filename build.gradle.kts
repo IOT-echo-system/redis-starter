@@ -19,7 +19,7 @@ publishing {
             from(components["java"])
             groupId = "com.robotutor"
             artifactId = "redis-starter"
-            version = "1.0.5"
+            version = "1.0.6"
 
             pom {
                 name.set("Redis Starter")
@@ -65,9 +65,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.google.code.gson:gson:2.8.9")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
     implementation("org.springframework.boot:spring-boot-starter-cache")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.robotutor:robotutor-tech-utils:1.0.25")
     implementation("com.robotutor:logging-starter:1.0.1")
     implementation("com.robotutor:web-client-starter:1.0.4")

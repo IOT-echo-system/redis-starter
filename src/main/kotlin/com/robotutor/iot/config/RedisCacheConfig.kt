@@ -3,17 +3,19 @@ package com.robotutor.iot.config
 import com.robotutor.iot.serializer.GsonRedisSerializer
 import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.EnableCaching
+import org.springframework.cache.interceptor.KeyGenerator
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.cache.RedisCacheConfiguration
 import org.springframework.data.redis.cache.RedisCacheManager
-import org.springframework.data.redis.connection.RedisConnectionFactory
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
+import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.serializer.RedisSerializationContext
 import java.time.Duration
 
 @Configuration
 @EnableCaching
-class RedisCacheConfig(private val factory: RedisConnectionFactory) {
+class RedisCacheConfig(private val factory: ReactiveRedisConnectionFactory) {
     @Bean
     fun cacheManager(): CacheManager {
         val redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
@@ -37,9 +39,29 @@ class RedisCacheConfig(private val factory: RedisConnectionFactory) {
             "premisesGateway" to gatewayCacheConfiguration
         )
 
-        return RedisCacheManager.builder(factory)
+        return RedisCacheManager.builder()
             .cacheDefaults(redisCacheConfiguration)
             .withInitialCacheConfigurations(cacheConfigurations)
             .build()
+    }
+
+    @Bean
+    fun reactiveRedisTemplate(): ReactiveRedisTemplate<String, Any> {
+        val keySerializer = GsonRedisSerializer(String::class.java)
+        val valueSerializer = GsonRedisSerializer(Any::class.java)
+        val redisSerializationContext = RedisSerializationContext.newSerializationContext<String, Any>()
+            .key(keySerializer)
+            .value(valueSerializer)
+            .hashKey(keySerializer)
+            .hashValue(valueSerializer)
+            .build()
+        return ReactiveRedisTemplate(factory, redisSerializationContext)
+    }
+
+    @Bean
+    fun customKeyGenerator(): KeyGenerator {
+        return KeyGenerator { _, method, params ->
+            method.name + "_" + params.joinToString("_")
+        }
     }
 }

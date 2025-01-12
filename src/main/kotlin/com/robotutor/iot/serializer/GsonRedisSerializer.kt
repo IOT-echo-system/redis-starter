@@ -9,7 +9,7 @@ class GsonRedisSerializer<T : Any>(private val clazz: Class<T>) : RedisSerialize
         return DefaultSerializer.serialize(value).toByteArray(StandardCharsets.UTF_8)
     }
 
-    override fun deserialize(bytes: ByteArray?): T {
-        return DefaultSerializer.deserialize(bytes.toString(), clazz)
+    override fun deserialize(bytes: ByteArray?): T? {
+        return bytes?.let { DefaultSerializer.deserialize(bytes.toString(StandardCharsets.UTF_8), clazz) }
     }
 }
