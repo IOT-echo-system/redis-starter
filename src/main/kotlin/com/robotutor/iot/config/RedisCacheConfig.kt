@@ -7,7 +7,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.cache.RedisCacheConfiguration
 import org.springframework.data.redis.cache.RedisCacheManager
+import org.springframework.data.redis.cache.RedisCacheWriter
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
+import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.data.redis.serializer.RedisSerializationContext
 import java.time.Duration
@@ -17,6 +19,7 @@ import java.time.Duration
 class RedisCacheConfig(private val connectionFactory: ReactiveRedisConnectionFactory) {
     @Bean
     fun redisCacheManager(): RedisCacheManager {
+        val cacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory as RedisConnectionFactory)
         val redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(Duration.ofMinutes(10))
             .disableCachingNullValues()
@@ -38,7 +41,7 @@ class RedisCacheConfig(private val connectionFactory: ReactiveRedisConnectionFac
             "premisesGateway" to gatewayCacheConfiguration
         )
 
-        return RedisCacheManager.builder()
+        return RedisCacheManager.builder(cacheWriter)
             .cacheDefaults(redisCacheConfiguration)
             .withInitialCacheConfigurations(cacheConfigurations)
             .build()
