@@ -16,7 +16,7 @@ class RedisConfig {
     private lateinit var redisPort: Number
 
     @Bean
-    fun redisConnectionFactory(): ReactiveRedisConnectionFactory {
+    fun connectionFactory(): ReactiveRedisConnectionFactory {
         val redisConfig = RedisStandaloneConfiguration()
         redisConfig.hostName = redisHost
         redisConfig.port = redisPort.toInt()

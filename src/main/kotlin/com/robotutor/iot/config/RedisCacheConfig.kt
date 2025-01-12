@@ -14,7 +14,7 @@ import java.time.Duration
 
 @Configuration
 @EnableCaching
-class RedisCacheConfig(private val factory: ReactiveRedisConnectionFactory) {
+class RedisCacheConfig(private val connectionFactory: ReactiveRedisConnectionFactory) {
     @Bean
     fun redisCacheManager(): RedisCacheManager {
         val redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
@@ -54,7 +54,7 @@ class RedisCacheConfig(private val factory: ReactiveRedisConnectionFactory) {
             .hashKey(keySerializer)
             .hashValue(valueSerializer)
             .build()
-        return ReactiveRedisTemplate(factory, redisSerializationContext)
+        return ReactiveRedisTemplate(connectionFactory, redisSerializationContext)
     }
 
     @Bean
