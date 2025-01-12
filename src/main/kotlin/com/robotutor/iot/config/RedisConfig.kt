@@ -14,11 +14,15 @@ class RedisConfig {
     private lateinit var redisHost: String
 
     @Value("\${spring.data.redis.port}")
-    private lateinit var redisPort: Number
+    private lateinit var redisPort: String
 
     @Primary
     @Bean
     fun connectionFactory(): ReactiveRedisConnectionFactory {
+        println("-----------Redis config------------")
+        println(redisHost)
+        println(redisPort.toInt())
+        println("-----------Redis config end------------")
         val redisConfig = RedisStandaloneConfiguration(redisHost, redisPort.toInt())
         return LettuceConnectionFactory(redisConfig)
     }
