@@ -19,10 +19,6 @@ class RedisConfig {
     @Primary
     @Bean
     fun connectionFactory(): ReactiveRedisConnectionFactory {
-        println("-----------Redis config------------")
-        println(redisHost)
-        println(redisPort.toInt())
-        println("-----------Redis config end------------")
         val redisConfig = RedisStandaloneConfiguration(redisHost, redisPort.toInt())
         return LettuceConnectionFactory(redisConfig)
     }

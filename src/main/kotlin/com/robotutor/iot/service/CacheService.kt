@@ -57,7 +57,10 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
 
     private fun <T : Any> getValue(key: String): Mono<T> {
         val type = object : TypeReference<T>() {}.type
-        return reactiveRedisTemplate.opsForValue().get(key).map { DefaultSerializer.deserialize<T>(it, type) }
+        return reactiveRedisTemplate.opsForValue().get(key).map {
+            println("--------$it---------")
+            DefaultSerializer.deserialize<T>(it, type)
+        }
     }
 
     private fun <T : Any> setValues(key: String, value: List<T>, ttlInSeconds: Long = 600): Flux<T> {
@@ -70,6 +73,7 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
         val listType = object : TypeReference<List<T>>() {}.type
         return reactiveRedisTemplate.opsForValue().get(key)
             .flatMapMany {
+                println("--------$it---------")
                 createFlux(DefaultSerializer.deserialize<List<T>>(it, listType))
             }
     }
