@@ -26,11 +26,16 @@ class RedisCacheConfig(private val factory: RedisConnectionFactory) {
                 RedisSerializationContext.SerializationPair.fromSerializer(StringRedisSerializer())
             )
 
-        val validationCacheConfiguration = redisCacheConfiguration.entryTtl(Duration.ofMinutes(1))
+        val gatewayCacheConfiguration = redisCacheConfiguration.entryTtl(Duration.ofMinutes(1))
+        val cacheConfigurations: Map<String, RedisCacheConfiguration> = mapOf(
+            "authGateway" to gatewayCacheConfiguration,
+            "policyGateway" to gatewayCacheConfiguration,
+            "premisesGateway" to gatewayCacheConfiguration
+        )
 
         return RedisCacheManager.builder(factory)
             .cacheDefaults(redisCacheConfiguration)
-            .withCacheConfiguration("validation", validationCacheConfiguration)
+            .withInitialCacheConfigurations(cacheConfigurations)
             .build()
     }
 }

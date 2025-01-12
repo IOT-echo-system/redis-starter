@@ -19,11 +19,11 @@ publishing {
             from(components["java"])
             groupId = "com.robotutor"
             artifactId = "redis-starter"
-            version = "1.0.0"
+            version = "1.0.1"
 
             pom {
-                name.set("Kafka Starter")
-                description.set("A reactive kafka starter package")
+                name.set("Redis Starter")
+                description.set("A reactive redis starter package")
                 url.set("https://maven.pkg.github.com/IOT-echo-system/kafka-starter")
             }
         }
