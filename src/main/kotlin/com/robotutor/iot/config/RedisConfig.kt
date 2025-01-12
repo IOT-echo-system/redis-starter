@@ -3,7 +3,7 @@ package com.robotutor.iot.config
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory
+import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
 
@@ -16,10 +16,8 @@ class RedisConfig {
     private lateinit var redisPort: Number
 
     @Bean
-    fun connectionFactory(): ReactiveRedisConnectionFactory {
-        val redisConfig = RedisStandaloneConfiguration()
-        redisConfig.hostName = redisHost
-        redisConfig.port = redisPort.toInt()
+    fun connectionFactory(): RedisConnectionFactory {
+        val redisConfig = RedisStandaloneConfiguration(redisHost, redisPort.toInt())
         return LettuceConnectionFactory(redisConfig)
     }
 }
