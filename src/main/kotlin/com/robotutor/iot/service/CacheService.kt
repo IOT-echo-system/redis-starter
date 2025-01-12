@@ -11,8 +11,13 @@ import java.time.Duration
 
 @Service
 class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<String, String>) {
-    fun <T : Any> retrieve(key: String, ttlInSeconds: Long = 600, switchIfAbsent: () -> Mono<T>): Mono<T> {
-        return getValue<T>(key)
+    fun <T : Any> retrieve(
+        key: String,
+        clazz: Class<T>,
+        ttlInSeconds: Long = 600,
+        switchIfAbsent: () -> Mono<T>
+    ): Mono<T> {
+        return getValue(key, clazz)
             .switchIfEmpty(
                 switchIfAbsent()
                     .flatMap { setValue(key, it, ttlInSeconds) }
@@ -55,11 +60,10 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
             .map { value }
     }
 
-    private fun <T : Any> getValue(key: String): Mono<T> {
-        val type = object : TypeReference<T>() {}.type
+    private fun <T : Any> getValue(key: String, clazz: Class<T>): Mono<T> {
         return reactiveRedisTemplate.opsForValue().get(key).map {
             println("--------$it---------")
-            DefaultSerializer.deserialize<T>(it, type)
+            DefaultSerializer.deserialize(it, clazz)
         }
     }
 
