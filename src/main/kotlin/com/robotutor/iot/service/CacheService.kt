@@ -1,6 +1,6 @@
 package com.robotutor.iot.service
 
-import com.fasterxml.jackson.core.type.TypeReference
+import com.google.gson.reflect.TypeToken
 import com.robotutor.iot.utils.createFlux
 import com.robotutor.loggingstarter.serializer.DefaultSerializer
 import org.springframework.data.redis.core.ReactiveRedisTemplate
@@ -62,7 +62,6 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
 
     private fun <T : Any> getValue(key: String, clazz: Class<T>): Mono<T> {
         return reactiveRedisTemplate.opsForValue().get(key).map {
-            println("--------$it---------")
             DefaultSerializer.deserialize(it, clazz)
         }
     }
@@ -74,10 +73,9 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
     }
 
     private fun <T : Any> getValues(key: String): Flux<T> {
-        val listType = object : TypeReference<List<T>>() {}.type
+        val listType = object : TypeToken<List<T>>() {}.type
         return reactiveRedisTemplate.opsForValue().get(key)
             .flatMapMany {
-                println("--------$it---------")
                 createFlux(DefaultSerializer.deserialize<List<T>>(it, listType))
             }
     }
