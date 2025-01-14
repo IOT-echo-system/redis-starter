@@ -35,13 +35,9 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
         switchIfAbsent: () -> Flux<T>
     ): Flux<T> {
         return getValues(key, clazz)
-            .logOnSuccess("Successfully get values from list for $key")
-            .logOnError("", "Failed to get values from list for $key")
             .switchIfEmpty(
                 switchIfAbsent()
                     .flatMap { setValueInList(key, it, ttlInSeconds) }
-                    .logOnSuccess("Successfully set values from list for $key")
-                    .logOnError("", "Failed to set values from list for $key")
             )
     }
 
@@ -57,8 +53,6 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
             .flatMapMany {
                 switchIfAbsent()
                     .flatMap { setValueInList(key, it, ttlInSeconds) }
-                    .logOnSuccess("Successfully set values from list for $key")
-                    .logOnError("", "Failed to set values from list for $key")
             }
     }
 
