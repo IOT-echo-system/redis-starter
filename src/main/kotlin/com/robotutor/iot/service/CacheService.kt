@@ -1,7 +1,7 @@
 package com.robotutor.iot.service
 
-import com.google.gson.reflect.TypeToken
-import com.robotutor.iot.utils.createFlux
+import com.robotutor.loggingstarter.logOnError
+import com.robotutor.loggingstarter.logOnSuccess
 import com.robotutor.loggingstarter.serializer.DefaultSerializer
 import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.stereotype.Service
@@ -18,40 +18,60 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
         switchIfAbsent: () -> Mono<T>
     ): Mono<T> {
         return getValue(key, clazz)
+            .logOnSuccess("Successfully get value for $key")
+            .logOnError("", "Failed to get value for $key")
             .switchIfEmpty(
                 switchIfAbsent()
                     .flatMap { setValue(key, it, ttlInSeconds) }
+                    .logOnSuccess("Successfully set value for $key")
+                    .logOnError("", "Failed to set value for $key")
             )
     }
 
-    fun <T : Any> retrieves(key: String, ttlInSeconds: Long = 600, switchIfAbsent: () -> Flux<T>): Flux<T> {
-        return getValues<T>(key)
+    fun <T : Any> retrieves(
+        key: String,
+        clazz: Class<T>,
+        ttlInSeconds: Long = 600,
+        switchIfAbsent: () -> Flux<T>
+    ): Flux<T> {
+        return getValues(key, clazz)
+            .logOnSuccess("Successfully get values from list for $key")
+            .logOnError("", "Failed to get values from list for $key")
             .switchIfEmpty(
                 switchIfAbsent()
-                    .collectList()
-                    .flatMapMany { setValues(key, it, ttlInSeconds) }
+                    .flatMap { setValueInList(key, it, ttlInSeconds) }
+                    .logOnSuccess("Successfully set values from list for $key")
+                    .logOnError("", "Failed to set values from list for $key")
             )
     }
 
     fun <T : Any> update(key: String, ttlInSeconds: Long = 600, switchIfAbsent: () -> Mono<T>): Mono<T> {
-        return evict(key)
-            .flatMap {
-                switchIfAbsent()
-                    .flatMap { setValue(key, it, ttlInSeconds) }
-            }
+        return switchIfAbsent()
+            .flatMap { setValue(key, it, ttlInSeconds) }
+            .logOnSuccess("Successfully updated value for $key")
+            .logOnError("", "Failed to update value for $key")
     }
 
     fun <T : Any> updates(key: String, ttlInSeconds: Long = 600, switchIfAbsent: () -> Flux<T>): Flux<T> {
-        return evict(key)
+        return evictList(key)
             .flatMapMany {
                 switchIfAbsent()
-                    .collectList()
-                    .flatMapMany { setValues(key, it, ttlInSeconds) }
+                    .flatMap { setValueInList(key, it, ttlInSeconds) }
+                    .logOnSuccess("Successfully set values from list for $key")
+                    .logOnError("", "Failed to set values from list for $key")
             }
     }
 
     fun evict(key: String): Mono<Boolean> {
         return reactiveRedisTemplate.opsForValue().delete(key)
+            .logOnSuccess("Successfully clear value for $key")
+            .logOnError("", "Failed to clear value for $key")
+    }
+
+    fun evictList(key: String): Mono<Boolean> {
+        return reactiveRedisTemplate.opsForList().delete(key)
+            .logOnSuccess("Successfully clear values from list for $key")
+            .logOnError("", "Failed to clear values from list for $key")
     }
 
     private fun <T : Any> setValue(key: String, value: T, ttlInSeconds: Long = 600): Mono<T> {
@@ -66,18 +86,17 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
         }
     }
 
-    private fun <T : Any> setValues(key: String, value: List<T>, ttlInSeconds: Long = 600): Flux<T> {
-        return reactiveRedisTemplate.opsForValue()
-            .set(key, DefaultSerializer.serialize(value), Duration.ofSeconds(ttlInSeconds))
-            .flatMapMany { createFlux(value) }
+    private fun <T : Any> setValueInList(key: String, value: T, ttlInSeconds: Long = 600): Mono<T> {
+        return reactiveRedisTemplate.opsForList()
+            .rightPush(key, DefaultSerializer.serialize(value))
+            .flatMap { reactiveRedisTemplate.expire(key, Duration.ofSeconds(ttlInSeconds)) }
+            .map { value }
     }
 
-    private fun <T : Any> getValues(key: String): Flux<T> {
-        val listType = object : TypeToken<List<T>>() {}.type
-        return reactiveRedisTemplate.opsForValue().get(key)
-            .flatMapMany {
-                createFlux(DefaultSerializer.deserialize<List<T>>(it, listType))
-            }
+    private fun <T : Any> getValues(key: String, clazz: Class<T>): Flux<T> {
+        return reactiveRedisTemplate.opsForList().range(key, 0, -1).map {
+            DefaultSerializer.deserialize(it, clazz)
+        }
     }
 }
 
