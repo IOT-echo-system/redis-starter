@@ -19,7 +19,7 @@ publishing {
             from(components["java"])
             groupId = "com.robotutor"
             artifactId = "redis-starter"
-            version = "1.0.26"
+            version = "1.0.27"
 
             pom {
                 name.set("Redis Starter")
@@ -54,8 +54,6 @@ repositories {
         }
     }
 
-    githubMavenRepository("robotutor-tech-utils")
-    githubMavenRepository("web-client-starter")
     githubMavenRepository("logging-starter")
 }
 
