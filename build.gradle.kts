@@ -24,7 +24,7 @@ publishing {
             pom {
                 name.set("Redis Starter")
                 description.set("A reactive redis starter package")
-                url.set("https://maven.pkg.github.com/IOT-echo-system/kafka-starter")
+                url.set("https://maven.pkg.github.com/IOT-echo-system/redis-starter")
             }
         }
     }
@@ -32,7 +32,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/IOT-echo-system/kafka-starter")
+            url = uri("https://maven.pkg.github.com/IOT-echo-system/redis-starter")
             credentials {
                 username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
                 password = project.findProperty("gpr.token") as String? ?: System.getenv("TOKEN")
