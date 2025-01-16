@@ -1,5 +1,6 @@
 package com.robotutor.iot.service
 
+import com.robotutor.loggingstarter.Logger
 import com.robotutor.loggingstarter.logOnError
 import com.robotutor.loggingstarter.logOnSuccess
 import com.robotutor.loggingstarter.serializer.DefaultSerializer
@@ -11,6 +12,7 @@ import java.time.Duration
 
 @Service
 class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<String, String>) {
+    val logger = Logger(this::class.java)
     fun <T : Any> retrieve(
         key: String,
         clazz: Class<T>,
@@ -18,13 +20,13 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
         switchIfAbsent: () -> Mono<T>
     ): Mono<T> {
         return getValue(key, clazz)
-            .logOnSuccess("Successfully get value for $key")
-            .logOnError("", "Failed to get value for $key")
+            .logOnSuccess(logger, "Successfully get value for $key")
+            .logOnError(logger, "", "Failed to get value for $key")
             .switchIfEmpty(
                 switchIfAbsent()
                     .flatMap { setValue(key, it, ttlInSeconds) }
-                    .logOnSuccess("Successfully set value for $key")
-                    .logOnError("", "Failed to set value for $key")
+                    .logOnSuccess(logger, "Successfully set value for $key")
+                    .logOnError(logger, "", "Failed to set value for $key")
             )
     }
 
@@ -35,37 +37,43 @@ class CacheService(private val reactiveRedisTemplate: ReactiveRedisTemplate<Stri
         switchIfAbsent: () -> Flux<T>
     ): Flux<T> {
         return getValues(key, clazz)
+            .logOnSuccess(logger, "Successfully get values from list for $key")
+            .logOnError(logger, "", "Failed to get values from list for $key")
             .switchIfEmpty(
                 switchIfAbsent()
                     .flatMap { setValueInList(key, it, ttlInSeconds) }
+                    .logOnSuccess(logger, "Successfully set values in list for $key")
+                    .logOnError(logger, "", "Failed to set values in list for $key")
             )
     }
 
-    fun <T : Any> update(key: String, ttlInSeconds: Long = 600, switchIfAbsent: () -> Mono<T>): Mono<T> {
-        return switchIfAbsent()
+    fun <T : Any> update(key: String, ttlInSeconds: Long = 600, getValueToUpdate: () -> Mono<T>): Mono<T> {
+        return getValueToUpdate()
             .flatMap { setValue(key, it, ttlInSeconds) }
-            .logOnSuccess("Successfully updated value for $key")
-            .logOnError("", "Failed to update value for $key")
+            .logOnSuccess(logger, "Successfully updated value for $key")
+            .logOnError(logger, "", "Failed to update value for $key")
     }
 
-    fun <T : Any> updates(key: String, ttlInSeconds: Long = 600, switchIfAbsent: () -> Flux<T>): Flux<T> {
+    fun <T : Any> updates(key: String, ttlInSeconds: Long = 600, getValuesToUpdate: () -> Flux<T>): Flux<T> {
         return evictList(key)
             .flatMapMany {
-                switchIfAbsent()
+                getValuesToUpdate()
                     .flatMap { setValueInList(key, it, ttlInSeconds) }
+                    .logOnSuccess(logger, "Successfully set values in list for $key")
+                    .logOnError(logger, "", "Failed to set values in list for $key")
             }
     }
 
     fun evict(key: String): Mono<Boolean> {
         return reactiveRedisTemplate.opsForValue().delete(key)
-            .logOnSuccess("Successfully clear value for $key")
-            .logOnError("", "Failed to clear value for $key")
+            .logOnSuccess(logger, "Successfully clear value for $key")
+            .logOnError(logger, "", "Failed to clear value for $key")
     }
 
     fun evictList(key: String): Mono<Boolean> {
         return reactiveRedisTemplate.opsForList().delete(key)
-            .logOnSuccess("Successfully clear values from list for $key")
-            .logOnError("", "Failed to clear values from list for $key")
+            .logOnSuccess(logger, "Successfully clear values from list for $key")
+            .logOnError(logger, "", "Failed to clear values from list for $key")
     }
 
     private fun <T : Any> setValue(key: String, value: T, ttlInSeconds: Long = 600): Mono<T> {
